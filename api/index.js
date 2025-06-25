@@ -3,7 +3,9 @@ const app = express();
 const port = 3000;
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Hello, Vercel!" });
+  res
+    .status(200)
+    .json({ message: "Hello, Vercel! Thansk for being simpler than heroKÚ" });
 });
 
 module.exports = app;
