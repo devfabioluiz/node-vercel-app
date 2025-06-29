@@ -3,14 +3,14 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Corrija os caminhos para rotas
-const userRoutes = require("../routes/users");
-const productRoutes = require("../routes/products");
+const muralAvisoRoutes = require("../routes/mural-avisos");
+const aulasRoutes = require("../routes/aulas");
 
 app.use(express.json());
 
 // Use as rotas corretamente
-app.use("/api/users", userRoutes);
-app.use("/api/products", productRoutes);
+app.use("/api/mural-avisos", muralAvisoRoutes);
+app.use("/api/aulas", aulasRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, Express!");
