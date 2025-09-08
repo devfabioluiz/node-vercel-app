@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const clientPromise = require("../api/db");
+const { ObjectId } = require("mongodb");
 
 // GET: Listar todas as funcionarios
 router.get("/", async (req, res) => {
@@ -12,6 +13,30 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error("Erro ao buscar funcionarios:", err);
     res.status(500).json({ error: "Erro ao buscar funcionarios" });
+  }
+});
+
+// delete: Listar todas as funcionarios
+router.delete("/:id", async (req, res) => {
+  try {
+    const client = await clientPromise;
+    const db = client.db("mydatabase"); // Substitua pelo nome do seu banco de dados
+
+    const { id } = req.params;
+
+    // Deleta o documento com o _id especificado
+    const result = await db
+      .collection("funcionarios")
+      .deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Funcionário não encontrado" });
+    }
+
+    res.json({ message: "Funcionário deletado com sucesso" });
+  } catch (err) {
+    console.error("Erro ao deletar funcionario:", err);
+    res.status(500).json({ error: "Erro ao deletar funcionario" });
   }
 });
 
@@ -54,6 +79,51 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("Erro ao adicionar dados:", err);
     res.status(500).json({ error: "Erro ao adicionar dados." });
+  }
+});
+
+// put: Inserir uma nova aula
+router.put("/:id", async (req, res) => {
+  try {
+    const client = await clientPromise;
+    const db = client.db("mydatabase");
+
+    const { id } = req.params;
+    const { funcionario } = req.body;
+
+    // Validação básica
+    if (
+      !funcionario.nome ||
+      !funcionario.sobrenome ||
+      !funcionario.sexo ||
+      !funcionario.dtNascimento ||
+      !funcionario.grauEscolaridade ||
+      !funcionario.endereco ||
+      !funcionario.foto ||
+      !funcionario.salarioAtual ||
+      !funcionario.valorPassagem ||
+      !funcionario.optouVT ||
+      !Array.isArray(funcionario.historicoCargosESalarios) ||
+      funcionario.historicoCargosESalarios.length === 0
+    ) {
+      return res.status(400).json({
+        error: "O modelo de dados está incorreto ou incompleto.",
+      });
+    }
+
+    // Atualizar o funcionário existente
+    const result = await db
+      .collection("funcionarios")
+      .updateOne({ _id: new ObjectId(id) }, { $set: funcionario });
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Funcionário não encontrado" });
+    }
+
+    res.json({ message: "Dados atualizados com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao atualizar dados:", err);
+    res.status(500).json({ error: "Erro ao atualizar dados." });
   }
 });
 
