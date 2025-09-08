@@ -5,15 +5,17 @@ const port = process.env.PORT || 3000;
 // Corrija os caminhos para rotas
 const muralAvisoRoutes = require("../routes/mural-avisos");
 const aulasRoutes = require("../routes/aulas");
+const funcionariosRoutes = require("../routes/funcionarios");
 
 app.use(express.json());
 
 // Use as rotas corretamente
 app.use("/api/mural-avisos", muralAvisoRoutes);
 app.use("/api/aulas", aulasRoutes);
+app.use("/api/funcionarios", funcionariosRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Hello, Express!");
+  res.send("Api rodando! Coloque as rotas corretamente");
 });
 
 module.exports = app;
