@@ -16,11 +16,40 @@ router.get("/", async (req, res) => {
   }
 });
 
-// delete: Listar todas as funcionarios
+// GET: Listar propriedades do funcionário
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const client = await clientPromise;
+    const db = client.db("mydatabase");
+
+    // Verifica se o ID é válido
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    // Busca o funcionário pelo ID
+    const funcionario = await db
+      .collection("funcionarios")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!funcionario) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    res.json(funcionario);
+  } catch (err) {
+    console.error(`Erro ao buscar funcionário de id: ${id}`, err);
+    res.status(500).json({ error: `Erro ao buscar funcionário de id ${id}` });
+  }
+});
+
+// delete: deletar funcionario
 router.delete("/:id", async (req, res) => {
   try {
     const client = await clientPromise;
-    const db = client.db("mydatabase"); // Substitua pelo nome do seu banco de dados
+    const db = client.db("mydatabase"); 
 
     const { id } = req.params;
 
