@@ -3,185 +3,168 @@ const router = express.Router();
 const clientPromise = require("../api/db");
 const { ObjectId } = require("mongodb");
 
-// GET: Listar todas as funcionarios
+// 🔧 Função de validação reutilizável
+function validarFuncionario(funcionario) {
+  const camposTexto = [
+    "nome",
+    "sobrenome",
+    "sexo",
+    "dtNascimento",
+    "grauEscolaridade",
+    "endereco",
+    "foto",
+  ];
+
+  for (const campo of camposTexto) {
+    if (!funcionario[campo] || typeof funcionario[campo] !== "string") {
+      return `Campo '${campo}' é obrigatório e deve ser uma string.`;
+    }
+  }
+
+  if (
+    typeof funcionario.salarioAtual !== "number" ||
+    typeof funcionario.valorPassagem !== "number"
+  ) {
+    return "salarioAtual e valorPassagem devem ser números.";
+  }
+
+  if (typeof funcionario.optouVT !== "boolean") {
+    return "optouVT deve ser booleano.";
+  }
+
+  if (
+    !Array.isArray(funcionario.historicoCargosESalarios) ||
+    funcionario.historicoCargosESalarios.length === 0
+  ) {
+    return "historicoCargosESalarios é obrigatório e deve conter ao menos um item.";
+  }
+
+  return null; // sem erro
+}
+
+// ✅ GET: Listar todos os funcionários
 router.get("/", async (req, res) => {
   try {
     const client = await clientPromise;
-    const db = client.db("mydatabase"); // Substitua pelo nome do seu banco de dados
+    const db = client.db("mydatabase");
     const funcionarios = await db.collection("funcionarios").find({}).toArray();
     res.json(funcionarios);
   } catch (err) {
-    console.error("Erro ao buscar funcionarios:", err);
-    res.status(500).json({ error: "Erro ao buscar funcionarios" });
+    console.error("Erro ao buscar funcionários:", err);
+    res.status(500).json({ error: "Erro ao buscar funcionários." });
   }
 });
 
-// GET: Listar propriedades do funcionário
+// ✅ GET: Buscar funcionário por ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "ID inválido." });
+  }
 
   try {
     const client = await clientPromise;
     const db = client.db("mydatabase");
 
-    // Verifica se o ID é válido
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
-    // Busca o funcionário pelo ID
     const funcionario = await db
       .collection("funcionarios")
       .findOne({ _id: new ObjectId(id) });
 
     if (!funcionario) {
-      return res.status(404).json({ error: "Funcionário não encontrado" });
+      return res.status(404).json({ error: "Funcionário não encontrado." });
     }
 
     res.json(funcionario);
   } catch (err) {
-    console.error(`Erro ao buscar funcionário de id: ${id}`, err);
-    res.status(500).json({ error: `Erro ao buscar funcionário de id ${id}` });
+    console.error("Erro ao buscar funcionário:", err);
+    res.status(500).json({ error: "Erro ao buscar funcionário." });
   }
 });
 
-// delete: deletar funcionario
+// ✅ DELETE: Remover funcionário por ID
 router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "ID inválido." });
+  }
+
   try {
     const client = await clientPromise;
-    const db = client.db("mydatabase"); 
+    const db = client.db("mydatabase");
 
-    const { id } = req.params;
-
-    // Deleta o documento com o _id especificado
     const result = await db
       .collection("funcionarios")
       .deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Funcionário não encontrado" });
+      return res.status(404).json({ message: "Funcionário não encontrado." });
     }
 
-    res.json({ message: "Funcionário deletado com sucesso" });
+    res.json({ message: "Funcionário deletado com sucesso." });
   } catch (err) {
-    console.error("Erro ao deletar funcionario:", err);
-    res.status(500).json({ error: "Erro ao deletar funcionario" });
+    console.error("Erro ao deletar funcionário:", err);
+    res.status(500).json({ error: "Erro ao deletar funcionário." });
   }
 });
 
-// POST: Inserir uma nova aula
+// ✅ POST: Inserir novo funcionário
 router.post("/", async (req, res) => {
+  const funcionario = req.body;
+
+  const erro = validarFuncionario(funcionario);
+  if (erro) {
+    return res.status(400).json({ error: erro });
+  }
+
   try {
     const client = await clientPromise;
     const db = client.db("mydatabase");
 
-    // Modelo esperado do corpo da requisição
-    const { funcionario } = req.body;
-
-    if (!ObjectId.isValid(id)) {
-  return res.status(400).json({ error: "ID inválido." });
-}
-
-    // Validação básica
-   const camposObrigatorios = [
-  "nome",
-  "sobrenome",
-  "sexo",
-  "dtNascimento",
-  "grauEscolaridade",
-  "endereco",
-  "foto"
-];
-
-// Verifica campos de texto obrigatórios
-for (const campo of camposObrigatorios) {
-  if (!funcionario[campo] || typeof funcionario[campo] !== "string") {
-    return res.status(400).json({ error: `Campo '${campo}' é obrigatório.` });
-  }
-}
-
-// Verifica campos numéricos obrigatórios
-if (
-  typeof funcionario.salarioAtual !== "number" ||
-  typeof funcionario.valorPassagem !== "number"
-) {
-  return res.status(400).json({ error: "salarioAtual e valorPassagem devem ser números." });
-}
-
-// Verifica campo booleano obrigatório
-if (typeof funcionario.optouVT !== "boolean") {
-  return res.status(400).json({ error: "optouVT deve ser booleano." });
-}
-
-// Verifica histórico
-if (
-  !Array.isArray(funcionario.historicoCargosESalarios) ||
-  funcionario.historicoCargosESalarios.length === 0
-) {
-  return res.status(400).json({ error: "historicoCargosESalarios é obrigatório e deve ter ao menos um item." });
-}
-
-    
-    }
-
-    // Inserir no banco de dados
-    const result = await db.collection("funcionarios").insertOne(req.body);
+    const result = await db.collection("funcionarios").insertOne(funcionario);
 
     res.status(201).json({
-      message: "Dados inseridos com sucesso!",
+      message: "Funcionário inserido com sucesso!",
       id: result.insertedId,
     });
   } catch (err) {
-    console.error("Erro ao adicionar dados:", err);
-    res.status(500).json({ error: "Erro ao adicionar dados." });
+    console.error("Erro ao inserir funcionário:", err);
+    res.status(500).json({ error: "Erro ao inserir funcionário." });
   }
 });
 
-// put: Inserir uma nova aula
+// ✅ PUT: Atualizar funcionário existente
 router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "ID inválido." });
+  }
+
+  const funcionario = req.body;
+
+  const erro = validarFuncionario(funcionario);
+  if (erro) {
+    return res.status(400).json({ error: erro });
+  }
+
   try {
     const client = await clientPromise;
     const db = client.db("mydatabase");
 
-    const { id } = req.params;
-    const funcionario = req.body;
-
-    // Validação básica
-    if (
-      !funcionario.nome ||
-      !funcionario.sobrenome ||
-      !funcionario.sexo ||
-      !funcionario.dtNascimento ||
-      !funcionario.grauEscolaridade ||
-      !funcionario.endereco ||
-      !funcionario.foto ||
-      !funcionario.salarioAtual ||
-      !funcionario.valorPassagem ||
-      !funcionario.optouVT ||
-      !Array.isArray(funcionario.historicoCargosESalarios) ||
-      funcionario.historicoCargosESalarios.length === 0
-    ) {
-      return res.status(400).json({
-        error: "O modelo de dados está incorreto ou incompleto.",
-      });
-    }
-
-    // Atualizar o funcionário existente
     const result = await db
-      .collection("funcionarios").updateOne(
-  { _id: new ObjectId(id) },
-  { $set: funcionario }
-);
-
+      .collection("funcionarios")
+      .updateOne({ _id: new ObjectId(id) }, { $set: funcionario });
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Funcionário não encontrado" });
+      return res.status(404).json({ message: "Funcionário não encontrado." });
     }
 
-    res.json({ message: "Dados atualizados com sucesso!" });
+    res.json({ message: "Funcionário atualizado com sucesso!" });
   } catch (err) {
-    console.error("Erro ao atualizar dados:", err);
-    res.status(500).json({ error: "Erro ao atualizar dados." });
+    console.error("Erro ao atualizar funcionário:", err);
+    res.status(500).json({ error: "Erro ao atualizar funcionário." });
   }
 });
 
