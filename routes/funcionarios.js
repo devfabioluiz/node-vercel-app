@@ -122,7 +122,7 @@ router.put("/:id", async (req, res) => {
     const db = client.db("mydatabase");
 
     const { id } = req.params;
-    const { funcionario } = req.body;
+    const funcionario = req.body;
 
     // Validação básica
     if (
@@ -146,8 +146,11 @@ router.put("/:id", async (req, res) => {
 
     // Atualizar o funcionário existente
     const result = await db
-      .collection("funcionarios")
-      .updateOne({ _id: new ObjectId(id) }, { $set: funcionario });
+      .collection("funcionarios").updateOne(
+  { _id: new ObjectId(id) },
+  { $set: funcionario }
+);
+
 
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: "Funcionário não encontrado" });
