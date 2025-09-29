@@ -78,21 +78,25 @@ router.post("/", async (req, res) => {
     // Modelo esperado do corpo da requisição
     const { funcionario } = req.body;
 
+    if (!ObjectId.isValid(id)) {
+  return res.status(400).json({ error: "ID inválido." });
+}
+
     // Validação básica
     if (
-      !funcionario.nome ||
-      !funcionario.sobrenome ||
-      !funcionario.sexo ||
-      !funcionario.dtNascimento ||
-      !funcionario.grauEscolaridade ||
-      !funcionario.endereco ||
-      !funcionario.foto ||
-      !funcionario.salarioAtual ||
-      !funcionario.valorPassagem ||
-      !funcionario.optouVT ||
-      !Array.isArray(funcionario.historicoCargosESalarios) ||
-      funcionario.historicoCargosESalarios.length === 0
-    ) {
+  funcionario.nome == null ||
+  funcionario.sobrenome == null ||
+  funcionario.sexo == null ||
+  funcionario.dtNascimento == null ||
+  funcionario.grauEscolaridade == null ||
+  funcionario.endereco == null ||
+  funcionario.foto == null ||
+  funcionario.salarioAtual == null ||
+  funcionario.valorPassagem == null ||
+  funcionario.optouVT == undefined ||
+  !Array.isArray(funcionario.historicoCargosESalarios) ||
+  funcionario.historicoCargosESalarios.length === 0
+  ) {
       return res.status(400).json({
         error: "O modelo de dados está incorreto ou incompleto.",
       });
