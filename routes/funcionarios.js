@@ -83,23 +83,45 @@ router.post("/", async (req, res) => {
 }
 
     // Validação básica
-    if (
-  funcionario.nome == null ||
-  funcionario.sobrenome == null ||
-  funcionario.sexo == null ||
-  funcionario.dtNascimento == null ||
-  funcionario.grauEscolaridade == null ||
-  funcionario.endereco == null ||
-  funcionario.foto == null ||
-  funcionario.salarioAtual == null ||
-  funcionario.valorPassagem == null ||
-  funcionario.optouVT == undefined ||
+   const camposObrigatorios = [
+  "nome",
+  "sobrenome",
+  "sexo",
+  "dtNascimento",
+  "grauEscolaridade",
+  "endereco",
+  "foto"
+];
+
+// Verifica campos de texto obrigatórios
+for (const campo of camposObrigatorios) {
+  if (!funcionario[campo] || typeof funcionario[campo] !== "string") {
+    return res.status(400).json({ error: `Campo '${campo}' é obrigatório.` });
+  }
+}
+
+// Verifica campos numéricos obrigatórios
+if (
+  typeof funcionario.salarioAtual !== "number" ||
+  typeof funcionario.valorPassagem !== "number"
+) {
+  return res.status(400).json({ error: "salarioAtual e valorPassagem devem ser números." });
+}
+
+// Verifica campo booleano obrigatório
+if (typeof funcionario.optouVT !== "boolean") {
+  return res.status(400).json({ error: "optouVT deve ser booleano." });
+}
+
+// Verifica histórico
+if (
   !Array.isArray(funcionario.historicoCargosESalarios) ||
   funcionario.historicoCargosESalarios.length === 0
-  ) {
-      return res.status(400).json({
-        error: "O modelo de dados está incorreto ou incompleto.",
-      });
+) {
+  return res.status(400).json({ error: "historicoCargosESalarios é obrigatório e deve ter ao menos um item." });
+}
+
+    
     }
 
     // Inserir no banco de dados
