@@ -23,10 +23,9 @@ function validarFuncionario(funcionario) {
   }
 
   if (
-    typeof funcionario.salarioAtual !== "number" ||
     typeof funcionario.valorPassagem !== "number"
   ) {
-    return "salarioAtual e valorPassagem devem ser números.";
+    return "valorPassagem devem ser números.";
   }
 
   if (typeof funcionario.optouVT !== "boolean") {
