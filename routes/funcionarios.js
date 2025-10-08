@@ -13,6 +13,7 @@ function validarFuncionario(funcionario) {
     "grauEscolaridade",
     "endereco",
     "foto",
+    "cargo"
   ];
 
   for (const campo of camposTexto) {
@@ -33,10 +34,17 @@ function validarFuncionario(funcionario) {
   }
 
   if (
-    !Array.isArray(funcionario.historicoCargosESalarios) ||
-    funcionario.historicoCargosESalarios.length === 0
+    typeof funcionario.salario !== "number" ||
+    isNaN(Date.parse(funcionario.dataInicio))
   ) {
-    return "historicoCargosESalarios é obrigatório e deve conter ao menos um item.";
+    return "salario deve ser número e dataInicio deve ser uma data válida.";
+  }
+
+  if (
+    funcionario.dataDemissao !== null &&
+    isNaN(Date.parse(funcionario.dataDemissao))
+  ) {
+    return "dataDemissao deve ser nula ou uma data válida.";
   }
 
   return null; // sem erro
